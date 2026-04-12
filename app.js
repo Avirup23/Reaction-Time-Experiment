@@ -17,94 +17,44 @@ const BIBD_BLOCKS = {
 const TREATMENT_MAP = {
   T1: { music: 'soothing',    color: 'yellow', label: 'Soothing · Yellow' },
   T2: { music: 'soothing',    color: 'red',    label: 'Soothing · Red'    },
-  T3: { music: 'competitive', color: 'yellow', label: 'Competitive · Yellow' },
-  T4: { music: 'competitive', color: 'red',    label: 'Competitive · Red' },
+  T3: { music: 'metal', color: 'yellow', label: 'metal · Yellow' },
+  T4: { music: 'metal', color: 'red',    label: 'metal · Red' },
 };
 
 // ════════════════════════════════════════════
-//   YOUTUBE MUSIC ENGINE
-//   Soothing : Elektronomia - Limitless (NCS)
-//   Competitive: Warriyo - Mortals (NCS)
+//   LOCAL AUDIO ENGINE
+//   Place soothing.mp3 and metal.mp3
+//   in the same directory as app.js
 // ════════════════════════════════════════════
 
-const MUSIC_IDS = {
-  soothing:    'cNcy3J4x62M',  // Elektronomia - Limitless [NCS]
-  competitive: 'yJg-Y5byMMw',  // Warriyo - Mortals [NCS]
+const AUDIO_FILES = {
+  soothing:    'soothing.mp3',
+  metal: 'metal.mp3',
 };
 
-let ytPlayer = null;
-let ytReady  = false;
-let pendingPlay = null;   // { type, startSec } waiting for API ready
-
-// Inject YouTube IFrame API script once
-(function loadYTApi() {
-  if (document.getElementById('yt-api-script')) return;
-  const s = document.createElement('script');
-  s.id  = 'yt-api-script';
-  s.src = 'https://www.youtube.com/iframe_api';
-  document.head.appendChild(s);
-})();
-
-// YouTube calls this globally when API is ready
-window.onYouTubeIframeAPIReady = function () {
-  // Create a hidden 1×1 iframe container
-  const div = document.createElement('div');
-  div.id = 'yt-player-wrap';
-  div.style.cssText = 'position:fixed;bottom:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-1';
-  document.body.appendChild(div);
-
-  ytPlayer = new YT.Player('yt-player-wrap', {
-    width: 1, height: 1,
-    playerVars: { autoplay: 0, controls: 0, loop: 1, playsinline: 1, rel: 0 },
-    events: {
-      onReady: () => {
-        ytReady = true;
-        ytPlayer.setVolume(70);
-        if (pendingPlay) {
-          _doPlay(pendingPlay.type, pendingPlay.startSec);
-          pendingPlay = null;
-        }
-      },
-      onStateChange: (e) => {
-        // Loop manually when track ends (loop param unreliable with cueVideoById)
-        if (e.data === YT.PlayerState.ENDED && ytPlayer._currentType) {
-          ytPlayer.seekTo(0);
-          ytPlayer.playVideo();
-        }
-      }
-    }
-  });
-};
-
-function _doPlay(type, startSec = 0) {
-  ytPlayer._currentType = type;
-  ytPlayer.loadVideoById({ videoId: MUSIC_IDS[type], startSeconds: startSec });
-  ytPlayer.setVolume(70);
-  ytPlayer.playVideo();
-}
+let currentAudio = null;
 
 function playMusic(type) {
-  if (!ytReady || !ytPlayer) {
-    // API not ready yet — queue it
-    pendingPlay = { type, startSec: 0 };
-    return;
-  }
-  _doPlay(type);
+  stopMusic();
+  currentAudio = new Audio(AUDIO_FILES[type]);
+  currentAudio.loop   = true;
+  currentAudio.volume = 0.7;
+  currentAudio.play().catch(e => console.warn('Audio play failed:', e));
 }
 
 function stopMusic() {
-  if (ytPlayer && ytReady) {
-    ytPlayer._currentType = null;
-    ytPlayer.stopVideo();
+  if (currentAudio) {
+    currentAudio.pause();
+    currentAudio.currentTime = 0;
+    currentAudio = null;
   }
-  pendingPlay = null;
 }
 
 // Preview toggle state
 let previewPlaying = null;
 
 function setupPreviews() {
-  ['soothing', 'competitive'].forEach(type => {
+  ['soothing', 'metal'].forEach(type => {
     const btn = document.getElementById(`btn-preview-${type}`);
     if (!btn) return;
     btn.addEventListener('click', () => {
@@ -115,7 +65,7 @@ function setupPreviews() {
       } else {
         stopMusic();
         if (previewPlaying) {
-          const other = previewPlaying === 'soothing' ? 'competitive' : 'soothing';
+          const other = previewPlaying === 'soothing' ? 'metal' : 'soothing';
           const ob = document.getElementById(`btn-preview-${other}`);
           if (ob) ob.textContent = '▶ Preview';
         }
@@ -126,7 +76,6 @@ function setupPreviews() {
     });
   });
 }
-
 // ════════════════════════════════════════════
 //   APP STATE
 // ════════════════════════════════════════════
@@ -168,7 +117,7 @@ $('btn-start-session').addEventListener('click', () => {
   if (!subject||!block) { alert('Please enter subject name and select a BIBD block.'); return; }
 
   stopMusic(); previewPlaying=null;
-  ['soothing','competitive'].forEach(t => {
+  ['soothing','metal'].forEach(t => {
     const b=document.getElementById(`btn-preview-${t}`); if(b) b.textContent='▶ Preview';
   });
 
@@ -187,7 +136,7 @@ function startTreatmentIntro() {
   $('treatment-badge').textContent=`Treatment ${tIdx+1} of 2`;
   const cs=t.color==='yellow'?'color:var(--yellow)':'color:var(--red)';
   const em=t.music==='soothing'?'🎵':'🥁';
-  const ml=t.music==='soothing'?'Soothing Music':'Competitive Music';
+  const ml=t.music==='soothing'?'Soothing Music':'metal Music';
   $('treatment-details').innerHTML=
     `<span style="${cs};font-size:28px;font-weight:800">${t.color.toUpperCase()} light</span><br>`+
     `<span style="font-size:16px;font-weight:400;color:var(--text-muted)">${em} ${ml}</span>`;
