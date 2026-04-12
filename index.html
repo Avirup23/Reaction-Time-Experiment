@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>CRT Experiment — Music × Color</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ══════════════════════ SCREEN: SETUP ══════════════════════ -->
+<div id="screen-setup" class="screen active">
+  <div class="setup-container">
+    <div class="logo-area">
+      <div class="logo-badge">DOE</div>
+      <h1>CRT Experiment</h1>
+      <p class="subtitle">Music × Color · Reaction Time Study</p>
+    </div>
+
+    <div class="form-card">
+      <h2>Session Setup</h2>
+
+      <div class="field-group">
+        <label>Friend Name / ID</label>
+        <input type="text" id="subject-name" placeholder="e.g. Supratim Das" />
+      </div>
+
+      <div class="field-group">
+        <label>BIBD Block Assignment</label>
+        <select id="bibd-block">
+          <option value="">— select block —</option>
+          <option value="1">Block 1 — Soothing·Yellow + Soothing·Red</option>
+          <option value="2">Block 2 — Soothing·Yellow + Competitive·Yellow</option>
+          <option value="3">Block 3 — Soothing·Yellow + Competitive·Red</option>
+          <option value="4">Block 4 — Soothing·Red + Competitive·Yellow</option>
+          <option value="5">Block 5 — Soothing·Red + Competitive·Red</option>
+          <option value="6">Block 6 — Competitive·Yellow + Competitive·Red</option>
+        </select>
+      </div>
+
+      <div class="music-preview-row">
+        <div class="music-preview-card" id="preview-soothing">
+          <span class="mp-icon">🎵</span>
+          <div>
+            <div class="mp-label">Soothing Music</div>
+            <div class="mp-desc">Calm ambient tones — slow, relaxing</div>
+          </div>
+          <button class="mp-play" id="btn-preview-soothing">▶ Preview</button>
+        </div>
+        <div class="music-preview-card" id="preview-competitive">
+          <span class="mp-icon">🥁</span>
+          <div>
+            <div class="mp-label">Competitive Music</div>
+            <div class="mp-desc">Driving beat — energetic, fast-paced</div>
+          </div>
+          <button class="mp-play" id="btn-preview-competitive">▶ Preview</button>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Trials per Treatment</label>
+        <div class="trial-toggle">
+          <button class="toggle-btn active" data-val="5">5</button>
+          <button class="toggle-btn" data-val="10">10</button>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Notes (optional)</label>
+        <input type="text" id="session-notes" placeholder="e.g. morning session, lab room 3" />
+      </div>
+
+      <button class="btn-primary" id="btn-start-session">Begin Session →</button>
+    </div>
+
+    <div class="bibd-reference">
+      <h3>BIBD Reference</h3>
+      <table>
+        <thead><tr><th>Block</th><th>Treatment A</th><th>Treatment B</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Soothing · Yellow</td><td>Soothing · Red</td></tr>
+          <tr><td>2</td><td>Soothing · Yellow</td><td>Competitive · Yellow</td></tr>
+          <tr><td>3</td><td>Soothing · Yellow</td><td>Competitive · Red</td></tr>
+          <tr><td>4</td><td>Soothing · Red</td><td>Competitive · Yellow</td></tr>
+          <tr><td>5</td><td>Soothing · Red</td><td>Competitive · Red</td></tr>
+          <tr><td>6</td><td>Competitive · Yellow</td><td>Competitive · Red</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ SCREEN: TREATMENT INTRO ══════════════════════ -->
+<div id="screen-treatment-intro" class="screen landscape-only">
+  <div class="treatment-intro-content">
+    <div class="treatment-badge" id="treatment-badge">Treatment 1 of 2</div>
+    <div class="treatment-details" id="treatment-details"></div>
+    <p class="instruction-text">Place both thumbs on the buttons below.<br>When a circle lights up — press that side!</p>
+    <div class="music-status" id="music-status-intro">
+      <span class="music-icon">♪</span>
+      <span id="music-label-intro">Loading music…</span>
+    </div>
+    <button class="btn-primary" id="btn-begin-treatment">I'm Ready →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════ SCREEN: EXPERIMENT ══════════════════════ -->
+<div id="screen-experiment" class="screen landscape-only">
+
+  <div class="exp-header">
+    <div class="exp-meta" id="exp-meta">Trial 1 / 5</div>
+    <div class="music-pill" id="music-pill">♪ —</div>
+    <div class="color-pill" id="color-pill">●</div>
+  </div>
+
+  <div class="stimulus-area">
+    <div class="stimulus-node left" id="node-left"></div>
+    <div class="center-divider"></div>
+    <div class="stimulus-node right" id="node-right"></div>
+  </div>
+
+  <!-- Thumb buttons — large, fixed to bottom corners -->
+  <div class="thumb-zone">
+    <button class="thumb-btn left-btn" id="btn-left" aria-label="Left">◀</button>
+    <div class="thumb-status" id="thumb-status">waiting…</div>
+    <button class="thumb-btn right-btn" id="btn-right" aria-label="Right">▶</button>
+  </div>
+
+</div>
+
+<!-- ══════════════════════ SCREEN: REST ══════════════════════ -->
+<div id="screen-rest" class="screen">
+  <div class="rest-content">
+    <div class="rest-icon">☕</div>
+    <h2>Treatment 1 Complete</h2>
+    <p>Take a 3–5 minute break before Treatment 2.</p>
+    <div class="rest-timer" id="rest-timer">3:00</div>
+    <button class="btn-primary" id="btn-next-treatment">Continue to Treatment 2 →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════ SCREEN: RESULTS ══════════════════════ -->
+<div id="screen-results" class="screen">
+  <div class="results-container">
+    <h2>Session Complete</h2>
+    <div class="results-summary" id="results-summary"></div>
+    <div class="results-table-wrap">
+      <table id="results-table">
+        <thead>
+          <tr>
+            <th>Trial</th><th>Treatment</th><th>Music</th>
+            <th>Color</th><th>Side</th><th>Correct</th><th>RT (ms)</th>
+          </tr>
+        </thead>
+        <tbody id="results-tbody"></tbody>
+      </table>
+    </div>
+    <div class="results-actions">
+      <button class="btn-primary" id="btn-download">⬇ Download Excel</button>
+      <button class="btn-secondary" id="btn-new-session">New Subject</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
