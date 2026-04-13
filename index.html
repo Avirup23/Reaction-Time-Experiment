@@ -17,7 +17,7 @@
   <div class="setup-container">
     <div class="logo-area">
       <div class="logo-badge">DOE</div>
-      <h1>CRT Experiment</h1>
+      <h1>Avirup's Experiment</h1>
       <p class="subtitle">Music × Color · Reaction Time Study</p>
     </div>
 
@@ -91,6 +91,74 @@
         </tbody>
       </table>
     </div>
+  </div>
+</div>
+
+<!-- ══════════════════════ SCREEN: TUTORIAL ══════════════════════ -->
+<div id="screen-tutorial" class="screen landscape-only">
+  <div class="tutorial-container">
+
+    <!-- Step 0: instructions -->
+    <div id="tut-step-intro" class="tut-step active">
+      <div class="treatment-badge">Practice Round — 4 Trials</div>
+      <div class="treatment-details" style="margin:18px 0 8px;">
+        <span style="font-size:22px;font-weight:800;color:var(--text)">How to play</span>
+      </div>
+      <div class="tut-instructions">
+        <div class="tut-rule">
+          <span class="tut-rule-icon">👁</span>
+          <span>Watch the two circles. One will suddenly light up — <span style="color:var(--yellow);font-weight:700">yellow</span> or <span style="color:var(--red);font-weight:700">red</span>.</span>
+        </div>
+        <div class="tut-rule">
+          <span class="tut-rule-icon">👇</span>
+          <span>Press the <strong>left button</strong> if the left circle lit up, <strong>right button</strong> if the right one did.</span>
+        </div>
+        <div class="tut-rule">
+          <span class="tut-rule-icon">⚡</span>
+          <span>React as <strong>fast as you can!</strong> You have 2 seconds before it counts as a miss.</span>
+        </div>
+      </div>
+      <button class="btn-primary" id="btn-start-tutorial">Start Practice →</button>
+      <button class="btn-skip" id="btn-skip-tutorial">Skip (already know)</button>
+    </div>
+
+    <!-- Step 1: live practice trials -->
+    <div id="tut-step-trials" class="tut-step">
+      <div class="exp-header">
+        <div class="exp-meta" id="tut-meta">Practice Trial 1 / 4</div>
+        <div class="music-pill" style="opacity:0.4">♪ no music yet</div>
+        <div class="tut-progress">
+          <span class="tut-dot" id="tdot0"></span>
+          <span class="tut-dot" id="tdot1"></span>
+          <span class="tut-dot" id="tdot2"></span>
+          <span class="tut-dot" id="tdot3"></span>
+        </div>
+      </div>
+
+      <div class="stimulus-area">
+        <div class="stimulus-node left" id="tut-node-left"></div>
+        <div class="center-divider"></div>
+        <div class="stimulus-node right" id="tut-node-right"></div>
+      </div>
+
+      <div class="thumb-zone">
+        <button class="thumb-btn left-btn" id="tut-btn-left" aria-label="Left">◀</button>
+        <div class="thumb-status" id="tut-thumb-status">get ready…</div>
+        <button class="thumb-btn right-btn" id="tut-btn-right" aria-label="Right">▶</button>
+      </div>
+    </div>
+
+    <!-- Step 2: done -->
+    <div id="tut-step-done" class="tut-step">
+      <div class="treatment-badge">Practice Complete ✓</div>
+      <div class="tut-done-stats" id="tut-done-stats"></div>
+      <p class="instruction-text" style="margin-top:16px;">
+        In the real experiment, music will be playing throughout.<br>React exactly the same way — as fast as possible!
+      </p>
+      <button class="btn-primary" id="btn-tut-continue">Continue to Experiment →</button>
+      <button class="btn-skip" id="btn-tut-retry">Practice again</button>
+    </div>
+
   </div>
 </div>
 

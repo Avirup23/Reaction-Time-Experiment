@@ -23,8 +23,6 @@ const TREATMENT_MAP = {
 
 // ════════════════════════════════════════════
 //   LOCAL AUDIO ENGINE
-//   Place soothing.mp3 and metal.mp3
-//   in the same directory as app.js
 // ════════════════════════════════════════════
 
 const AUDIO_FILES = {
@@ -76,6 +74,7 @@ function setupPreviews() {
     });
   });
 }
+
 // ════════════════════════════════════════════
 //   APP STATE
 // ════════════════════════════════════════════
@@ -89,6 +88,7 @@ let state = {
 const $ = id => document.getElementById(id);
 const screens = {
   setup:          $('screen-setup'),
+  tutorial:       $('screen-tutorial'),
   treatmentIntro: $('screen-treatment-intro'),
   experiment:     $('screen-experiment'),
   rest:           $('screen-rest'),
@@ -127,7 +127,150 @@ $('btn-start-session').addEventListener('click', () => {
   state.treatments = [...BIBD_BLOCKS[block]];
   state.currentTreatmentIdx=0; state.currentTrial=0; state.allTrials=[];
   if (Math.random()<0.5) state.treatments.reverse();
+
+  // Show tutorial before real experiment
+  startTutorial();
+});
+
+// ════════════════════════════════════════════
+//   TUTORIAL
+// ════════════════════════════════════════════
+
+const TUT_COLORS = ['yellow', 'yellow', 'red', 'red'];
+
+let tut = {
+  colors: [], idx: 0, results: [],
+  stimSide: null, stimTime: null, waiting: false,
+  flashTO: null, trialTO: null,
+};
+
+function tutShowStep(stepId) {
+  ['tut-step-intro','tut-step-trials','tut-step-done'].forEach(id => {
+    $(id).classList.remove('active');
+  });
+  $(stepId).classList.add('active');
+}
+
+function startTutorial() {
+  showScreen('tutorial');
+  tutShowStep('tut-step-intro');
+}
+
+$('btn-start-tutorial').addEventListener('click', () => {
+  tut.colors = shuffle([...TUT_COLORS]);
+  tut.idx = 0; tut.results = [];
+  tutShowStep('tut-step-trials');
+  tutUpdateDots();
+  tutScheduleNext();
+});
+
+$('btn-skip-tutorial').addEventListener('click', () => {
   startTreatmentIntro();
+});
+
+$('btn-tut-continue').addEventListener('click', () => {
+  startTreatmentIntro();
+});
+
+$('btn-tut-retry').addEventListener('click', () => {
+  tutShowStep('tut-step-intro');
+});
+
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function tutUpdateDots() {
+  for (let i = 0; i < 4; i++) {
+    const d = $('tdot' + i);
+    d.className = 'tut-dot';
+    if (i < tut.results.length) {
+      d.classList.add(tut.results[i].correct ? 'tut-dot-correct' : 'tut-dot-wrong');
+    } else if (i === tut.results.length) {
+      d.classList.add('tut-dot-active');
+    }
+  }
+}
+
+function tutScheduleNext() {
+  tut.waiting = false; tutClearFlash();
+  $('tut-meta').textContent = `Practice Trial ${tut.idx + 1} / 4`;
+  $('tut-thumb-status').textContent = 'get ready…';
+  $('tut-thumb-status').className = 'thumb-status';
+  tut.trialTO = setTimeout(tutShowStim, 1200 + Math.random() * 1500);
+}
+
+function tutShowStim() {
+  const side  = Math.random() < 0.5 ? 'left' : 'right';
+  const color = tut.colors[tut.idx];
+  tut.stimSide = side; tut.stimTime = performance.now(); tut.waiting = true;
+  (side === 'left' ? $('tut-node-left') : $('tut-node-right')).classList.add(`flash-${color}`);
+  $('tut-thumb-status').textContent = 'press now!';
+  tut.flashTO = setTimeout(() => { if (tut.waiting) tutRecord(null); }, 2000);
+}
+
+function tutClearFlash() {
+  $('tut-node-left').className  = 'stimulus-node left';
+  $('tut-node-right').className = 'stimulus-node right';
+}
+
+function tutHandlePress(side) {
+  if (!tut.waiting) return;
+  clearTimeout(tut.flashTO);
+  const rt      = Math.round(performance.now() - tut.stimTime);
+  const correct = side === tut.stimSide;
+  tutRecord({ side, rt, correct });
+}
+
+function tutRecord(res) {
+  tutClearFlash(); tut.waiting = false;
+  const s = $('tut-thumb-status');
+  if (res) {
+    s.textContent = res.correct ? `✓ ${res.rt} ms` : '✗ wrong side';
+    s.className   = `thumb-status ${res.correct ? 'correct' : 'wrong'}`;
+  } else {
+    s.textContent = '— too slow';
+    s.className   = 'thumb-status wrong';
+  }
+  tut.results.push({ correct: res ? res.correct : false, rt: res ? res.rt : null });
+  tut.idx++;
+  tutUpdateDots();
+  if (tut.idx >= 4) {
+    setTimeout(tutShowDone, 900);
+  } else {
+    setTimeout(tutScheduleNext, 700);
+  }
+}
+
+function tutShowDone() {
+  const valid  = tut.results.filter(r => r.correct && r.rt);
+  const acc    = Math.round(tut.results.filter(r => r.correct).length / 4 * 100);
+  const avgRT  = valid.length ? Math.round(valid.reduce((a, b) => a + b.rt, 0) / valid.length) : null;
+  $('tut-done-stats').innerHTML = `
+    <div class="summary-card"><div class="s-label">Accuracy</div><div class="s-value">${acc}<span style="font-size:11px;color:var(--text-muted)">%</span></div></div>
+    <div class="summary-card"><div class="s-label">Avg RT</div><div class="s-value">${avgRT ?? '—'}<span style="font-size:11px;color:var(--text-muted)">${avgRT ? ' ms' : ''}</span></div></div>
+    <div class="summary-card"><div class="s-label">Trials</div><div class="s-value">4</div></div>`;
+  tutShowStep('tut-step-done');
+}
+
+// Tutorial thumb buttons
+$('tut-btn-left').addEventListener('pointerdown',  e => { e.preventDefault(); tutHandlePress('left');  });
+$('tut-btn-right').addEventListener('pointerdown', e => { e.preventDefault(); tutHandlePress('right'); });
+
+// Keyboard support also covers tutorial
+document.addEventListener('keydown', e => {
+  const tutActive = $('screen-tutorial').classList.contains('active');
+  if (tutActive) {
+    if (e.key === 'ArrowLeft'  || e.key === 'z') tutHandlePress('left');
+    if (e.key === 'ArrowRight' || e.key === '/') tutHandlePress('right');
+    return;
+  }
+  if (e.key === 'ArrowLeft'  || e.key === 'z') handlePress('left');
+  if (e.key === 'ArrowRight' || e.key === '/') handlePress('right');
 });
 
 // ── TREATMENT INTRO ──
@@ -225,10 +368,6 @@ function endTreatment() {
 
 $('btn-left').addEventListener('pointerdown', e=>{ e.preventDefault(); handlePress('left'); });
 $('btn-right').addEventListener('pointerdown', e=>{ e.preventDefault(); handlePress('right'); });
-document.addEventListener('keydown', e=>{
-  if(e.key==='ArrowLeft'||e.key==='z') handlePress('left');
-  if(e.key==='ArrowRight'||e.key==='/') handlePress('right');
-});
 
 // ── REST ──
 function startRestTimer() {
@@ -246,7 +385,6 @@ $('btn-next-treatment').addEventListener('click',()=>{
 
 // ── RESULTS ──
 function showResults() {
-  // Save accumulated trials to localStorage
   const existing = JSON.parse(localStorage.getItem('crt_all_trials') || '[]');
   const updated = [...existing, ...state.allTrials];
   localStorage.setItem('crt_all_trials', JSON.stringify(updated));
@@ -281,7 +419,6 @@ $('btn-download').addEventListener('click', () => {
 
   const wb = XLSX.utils.book_new();
 
-  // Raw trials — every subject, every session
   const h = ['Subject','Block','Treatment','TreatmentNo','Music_Type','Color','Trial',
               'Stimulus_Side','Response_Side','Correct','RT_ms','Timestamp','Notes'];
   const r = allTrials.map(r => [
@@ -290,7 +427,6 @@ $('btn-download').addEventListener('click', () => {
   ]);
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([h, ...r]), 'Raw_Trials');
 
-  // Summary per subject × treatment
   const subjects = [...new Set(allTrials.map(r => r.subject))];
   const sh = ['Subject','Block','Treatment','Music','Color','N_Trials','N_Correct',
                'Accuracy_%','Mean_RT_ms','Min_RT_ms','Max_RT_ms'];

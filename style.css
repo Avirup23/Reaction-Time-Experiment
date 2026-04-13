@@ -629,3 +629,94 @@ tr:last-child td { border-bottom: none; }
 
 /* Prevent double-tap zoom on buttons */
 button { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+
+/* ══════════════════════════════════════════
+   TUTORIAL SCREEN — add these rules to style.css
+   ══════════════════════════════════════════ */
+
+/* Tutorial container reuses treatment-intro layout */
+.tutorial-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 20px;
+  text-align: center;
+}
+
+/* Step visibility */
+.tut-step { display: none; width: 100%; }
+.tut-step.active { display: block; }
+
+/* Instruction rules */
+.tut-instructions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 440px;
+  margin: 20px auto 24px;
+  text-align: left;
+}
+
+.tut-rule {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 14px;
+  color: var(--text, #e0e0e0);
+  line-height: 1.5;
+}
+
+.tut-rule-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* Skip / retry button — secondary style */
+.btn-skip {
+  display: block;
+  margin: 10px auto 0;
+  background: transparent;
+  border: none;
+  color: var(--text-muted, #888);
+  font-size: 13px;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 4px 0;
+}
+.btn-skip:hover { color: var(--text, #ccc); }
+
+/* Progress dots in trial header */
+.tut-progress {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.tut-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  transition: background 0.3s;
+}
+
+.tut-dot-active  { background: rgba(255,255,255,0.55); }
+.tut-dot-correct { background: var(--green, #4ade80); }
+.tut-dot-wrong   { background: var(--red,   #E24B4A); }
+
+/* Done stats — reuse summary-card pattern */
+.tut-done-stats {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 20px 0 8px;
+}
