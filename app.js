@@ -17,8 +17,8 @@ const BIBD_BLOCKS = {
 const TREATMENT_MAP = {
   T1: { music: 'soothing',    color: 'yellow', label: 'Soothing · Yellow' },
   T2: { music: 'soothing',    color: 'red',    label: 'Soothing · Red'    },
-  T3: { music: 'metal', color: 'yellow', label: 'metal · Yellow' },
-  T4: { music: 'metal', color: 'red',    label: 'metal · Red' },
+  T3: { music: 'metal', color: 'yellow', label: 'Metal · Yellow' },
+  T4: { music: 'metal', color: 'red',    label: 'Metal · Red' },
 };
 
 // ════════════════════════════════════════════
@@ -26,8 +26,8 @@ const TREATMENT_MAP = {
 // ════════════════════════════════════════════
 
 const AUDIO_FILES = {
-  soothing:    'soothing.mp3',
-  metal: 'metal.mp3',
+  soothing: 'soothing.mp3',
+  metal:    'metal.mp3',
 };
 
 let currentAudio = null;
@@ -79,10 +79,10 @@ function setupPreviews() {
 //   APP STATE
 // ════════════════════════════════════════════
 let state = {
-  subject:'', block:null, notes:'', trialsPerTreatment:5,
-  treatments:[], currentTreatmentIdx:0, currentTrial:0,
-  stimulusSide:null, stimulusTime:null, waitingForResponse:false,
-  allTrials:[], restTimerInterval:null,
+  subject: '', block: null, notes: '', trialsPerTreatment: 5,
+  treatments: [], currentTreatmentIdx: 0, currentTrial: 0,
+  stimulusTime: null, waitingForResponse: false,
+  allTrials: [], restTimerInterval: null,
 };
 
 const $ = id => document.getElementById(id);
@@ -103,7 +103,7 @@ function showScreen(name) {
 // ── SETUP ──
 document.querySelectorAll('.toggle-btn').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.toggle-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     state.trialsPerTreatment = parseInt(btn.dataset.val);
   });
@@ -114,21 +114,20 @@ setupPreviews();
 $('btn-start-session').addEventListener('click', () => {
   const subject = $('subject-name').value.trim();
   const block   = parseInt($('bibd-block').value);
-  if (!subject||!block) { alert('Please enter subject name and select a BIBD block.'); return; }
+  if (!subject || !block) { alert('Please enter subject name and select a treatment combination.'); return; }
 
-  stopMusic(); previewPlaying=null;
-  ['soothing','metal'].forEach(t => {
-    const b=document.getElementById(`btn-preview-${t}`); if(b) b.textContent='▶ Preview';
+  stopMusic(); previewPlaying = null;
+  ['soothing', 'metal'].forEach(t => {
+    const b = document.getElementById(`btn-preview-${t}`); if (b) b.textContent = '▶ Preview';
   });
 
   state.subject    = subject;
   state.block      = block;
   state.notes      = $('session-notes').value.trim();
   state.treatments = [...BIBD_BLOCKS[block]];
-  state.currentTreatmentIdx=0; state.currentTrial=0; state.allTrials=[];
-  if (Math.random()<0.5) state.treatments.reverse();
+  state.currentTreatmentIdx = 0; state.currentTrial = 0; state.allTrials = [];
+  if (Math.random() < 0.5) state.treatments.reverse();
 
-  // Show tutorial before real experiment
   startTutorial();
 });
 
@@ -140,12 +139,12 @@ const TUT_COLORS = ['yellow', 'yellow', 'red', 'red'];
 
 let tut = {
   colors: [], idx: 0, results: [],
-  stimSide: null, stimTime: null, waiting: false,
+  stimTime: null, waiting: false,
   flashTO: null, trialTO: null,
 };
 
 function tutShowStep(stepId) {
-  ['tut-step-intro','tut-step-trials','tut-step-done'].forEach(id => {
+  ['tut-step-intro', 'tut-step-trials', 'tut-step-done'].forEach(id => {
     $(id).classList.remove('active');
   });
   $(stepId).classList.add('active');
@@ -205,38 +204,38 @@ function tutScheduleNext() {
 }
 
 function tutShowStim() {
-  const side  = Math.random() < 0.5 ? 'left' : 'right';
   const color = tut.colors[tut.idx];
-  tut.stimSide = side; tut.stimTime = performance.now(); tut.waiting = true;
-  (side === 'left' ? $('tut-node-left') : $('tut-node-right')).classList.add(`flash-${color}`);
-  $('tut-thumb-status').textContent = 'press now!';
+  tut.stimTime = performance.now(); tut.waiting = true;
+  const node = $('tut-node-center');
+  node.classList.add(`flash-${color}`);
+  node.classList.add('glow-pulse');
+  $('tut-thumb-status').textContent = 'tap now!';
   tut.flashTO = setTimeout(() => { if (tut.waiting) tutRecord(null); }, 2000);
 }
 
 function tutClearFlash() {
-  $('tut-node-left').className  = 'stimulus-node left';
-  $('tut-node-right').className = 'stimulus-node right';
+  const node = $('tut-node-center');
+  node.className = 'stimulus-node center';
 }
 
-function tutHandlePress(side) {
+function tutHandlePress() {
   if (!tut.waiting) return;
   clearTimeout(tut.flashTO);
   const rt      = Math.round(performance.now() - tut.stimTime);
-  const correct = side === tut.stimSide;
-  tutRecord({ side, rt, correct });
+  tutRecord({ rt, correct: true });
 }
 
 function tutRecord(res) {
   tutClearFlash(); tut.waiting = false;
   const s = $('tut-thumb-status');
   if (res) {
-    s.textContent = res.correct ? `✓ ${res.rt} ms` : '✗ wrong side';
-    s.className   = `thumb-status ${res.correct ? 'correct' : 'wrong'}`;
+    s.textContent = `✓ ${res.rt} ms`;
+    s.className   = 'thumb-status correct';
   } else {
     s.textContent = '— too slow';
     s.className   = 'thumb-status wrong';
   }
-  tut.results.push({ correct: res ? res.correct : false, rt: res ? res.rt : null });
+  tut.results.push({ correct: res ? true : false, rt: res ? res.rt : null });
   tut.idx++;
   tutUpdateDots();
   if (tut.idx >= 4) {
@@ -257,39 +256,36 @@ function tutShowDone() {
   tutShowStep('tut-step-done');
 }
 
-// Tutorial thumb buttons
-$('tut-btn-left').addEventListener('pointerdown',  e => { e.preventDefault(); tutHandlePress('left');  });
-$('tut-btn-right').addEventListener('pointerdown', e => { e.preventDefault(); tutHandlePress('right'); });
+// Tutorial — single center button
+$('tut-node-center').addEventListener('pointerdown', e => { e.preventDefault(); tutHandlePress(); });
 
-// Keyboard support also covers tutorial
+// Keyboard support
 document.addEventListener('keydown', e => {
   const tutActive = $('screen-tutorial').classList.contains('active');
   if (tutActive) {
-    if (e.key === 'ArrowLeft'  || e.key === 'z') tutHandlePress('left');
-    if (e.key === 'ArrowRight' || e.key === '/') tutHandlePress('right');
+    if (e.key === ' ' || e.key === 'Enter') tutHandlePress();
     return;
   }
-  if (e.key === 'ArrowLeft'  || e.key === 'z') handlePress('left');
-  if (e.key === 'ArrowRight' || e.key === '/') handlePress('right');
+  if (e.key === ' ' || e.key === 'Enter') handlePress();
 });
 
 // ── TREATMENT INTRO ──
 function startTreatmentIntro() {
-  const tIdx=state.currentTreatmentIdx, tKey=state.treatments[tIdx], t=TREATMENT_MAP[tKey];
-  $('treatment-badge').textContent=`Treatment ${tIdx+1} of 2`;
-  const cs=t.color==='yellow'?'color:var(--yellow)':'color:var(--red)';
-  const em=t.music==='soothing'?'🎵':'🥁';
-  const ml=t.music==='soothing'?'Soothing Music':'metal Music';
-  $('treatment-details').innerHTML=
-    `<span style="${cs};font-size:28px;font-weight:800">${t.color.toUpperCase()} light</span><br>`+
+  const tIdx = state.currentTreatmentIdx, tKey = state.treatments[tIdx], t = TREATMENT_MAP[tKey];
+  $('treatment-badge').textContent = `Treatment ${tIdx + 1} of 2`;
+  const cs  = t.color === 'yellow' ? 'color:var(--yellow)' : 'color:var(--red)';
+  const em  = t.music === 'soothing' ? '🎵' : '🥁';
+  const ml  = t.music === 'soothing' ? 'Soothing Music' : 'Metal Music';
+  $('treatment-details').innerHTML =
+    `<span style="${cs};font-size:28px;font-weight:800">${t.color.toUpperCase()} light</span><br>` +
     `<span style="font-size:16px;font-weight:400;color:var(--text-muted)">${em} ${ml}</span>`;
-  $('music-label-intro').textContent=`${em} ${ml} — playing now`;
+  $('music-label-intro').textContent = `${em} ${ml} — playing now`;
   playMusic(t.music);
   showScreen('treatmentIntro');
 }
 
 $('btn-begin-treatment').addEventListener('click', () => {
-  state.currentTrial=0;
+  state.currentTrial = 0;
   showScreen('experiment');
   updateExpHeader();
   scheduleNextTrial();
@@ -297,115 +293,122 @@ $('btn-begin-treatment').addEventListener('click', () => {
 
 // ── EXPERIMENT ──
 function updateExpHeader() {
-  const t=TREATMENT_MAP[state.treatments[state.currentTreatmentIdx]];
-  const em=t.music==='soothing'?'🎵':'🥁';
-  $('exp-meta').textContent=`Trial ${state.currentTrial+1}/${state.trialsPerTreatment}  · T${state.currentTreatmentIdx+1}/2`;
-  $('music-pill').textContent=`${em} ${t.music}`;
-  $('color-pill').textContent=t.color==='yellow'?'● YELLOW':'● RED';
-  $('color-pill').style.color=t.color==='yellow'?'var(--yellow)':'var(--red)';
+  const t = TREATMENT_MAP[state.treatments[state.currentTreatmentIdx]];
+  const em = t.music === 'soothing' ? '🎵' : '🥁';
+  $('exp-meta').textContent   = `Trial ${state.currentTrial + 1}/${state.trialsPerTreatment}  · T${state.currentTreatmentIdx + 1}/2`;
+  $('music-pill').textContent  = `${em} ${t.music}`;
+  $('color-pill').textContent  = t.color === 'yellow' ? '● YELLOW' : '● RED';
+  $('color-pill').style.color  = t.color === 'yellow' ? 'var(--yellow)' : 'var(--red)';
 }
 
-let stimulusTimeout=null, flashTimeout=null;
+let stimulusTimeout = null, flashTimeout = null;
 
 function scheduleNextTrial() {
-  $('thumb-status').textContent='get ready…';
-  $('thumb-status').className='thumb-status';
-  clearFlash(); state.waitingForResponse=false;
-  stimulusTimeout=setTimeout(showStimulus, 1500+Math.random()*2000);
+  $('thumb-status').textContent = 'get ready…';
+  $('thumb-status').className   = 'thumb-status';
+  clearFlash(); state.waitingForResponse = false;
+  stimulusTimeout = setTimeout(showStimulus, 1500 + Math.random() * 2000);
 }
 
 function showStimulus() {
-  const side=Math.random()<0.5?'left':'right';
-  const t=TREATMENT_MAP[state.treatments[state.currentTreatmentIdx]];
-  state.stimulusSide=side; state.stimulusTime=performance.now(); state.waitingForResponse=true;
-  (side==='left'?$('node-left'):$('node-right')).classList.add(`flash-${t.color}`);
-  $('thumb-status').textContent='press now!';
-  flashTimeout=setTimeout(()=>{ if(state.waitingForResponse) recordResponse(null); },2000);
+  const t = TREATMENT_MAP[state.treatments[state.currentTreatmentIdx]];
+  state.stimulusTime = performance.now(); state.waitingForResponse = true;
+  const node = $('node-center');
+  node.classList.add(`flash-${t.color}`);
+  node.classList.add('glow-pulse');
+  $('thumb-status').textContent = 'tap now!';
+  flashTimeout = setTimeout(() => { if (state.waitingForResponse) recordResponse(null); }, 2000);
 }
 
 function clearFlash() {
-  $('node-left').className='stimulus-node left';
-  $('node-right').className='stimulus-node right';
+  const node = $('node-center');
+  node.className = 'stimulus-node center';
 }
 
-function handlePress(side) {
+function handlePress() {
   if (!state.waitingForResponse) return;
-  recordResponse({ side, rt:Math.round(performance.now()-state.stimulusTime), correct:side===state.stimulusSide });
+  recordResponse({ rt: Math.round(performance.now() - state.stimulusTime) });
 }
 
 function recordResponse(res) {
-  clearTimeout(flashTimeout); clearFlash(); state.waitingForResponse=false;
-  const t=TREATMENT_MAP[state.treatments[state.currentTreatmentIdx]];
+  clearTimeout(flashTimeout); clearFlash(); state.waitingForResponse = false;
+  const t = TREATMENT_MAP[state.treatments[state.currentTreatmentIdx]];
   state.allTrials.push({
-    subject:state.subject, block:state.block,
-    treatment:state.treatments[state.currentTreatmentIdx],
-    treatmentN:state.currentTreatmentIdx+1,
-    music:t.music, color:t.color, trial:state.currentTrial+1,
-    side:state.stimulusSide, response:res?res.side:'none',
-    correct:res?(res.correct?'YES':'NO'):'MISS',
-    rt_ms:res?res.rt:'MISS',
-    timestamp:new Date().toISOString(), notes:state.notes,
+    subject:    state.subject,
+    block:      state.block,
+    treatment:  state.treatments[state.currentTreatmentIdx],
+    treatmentN: state.currentTreatmentIdx + 1,
+    music:      t.music,
+    color:      t.color,
+    trial:      state.currentTrial + 1,
+    correct:    res ? 'YES' : 'MISS',
+    rt_ms:      res ? res.rt : 'MISS',
+    timestamp:  new Date().toISOString(),
+    notes:      state.notes,
   });
   if (res) {
-    $('thumb-status').textContent=res.correct?`✓ ${res.rt} ms`:'✗ wrong side';
-    $('thumb-status').className=`thumb-status ${res.correct?'correct':'wrong'}`;
+    $('thumb-status').textContent = `✓ ${res.rt} ms`;
+    $('thumb-status').className   = 'thumb-status correct';
   } else {
-    $('thumb-status').textContent='— too slow';
-    $('thumb-status').className='thumb-status wrong';
+    $('thumb-status').textContent = '— too slow';
+    $('thumb-status').className   = 'thumb-status wrong';
   }
   state.currentTrial++;
-  if (state.currentTrial>=state.trialsPerTreatment) setTimeout(endTreatment,800);
-  else setTimeout(()=>{ updateExpHeader(); scheduleNextTrial(); },600);
+  if (state.currentTrial >= state.trialsPerTreatment) setTimeout(endTreatment, 800);
+  else setTimeout(() => { updateExpHeader(); scheduleNextTrial(); }, 600);
 }
+
+// Single center button in experiment
+$('node-center').addEventListener('pointerdown', e => { e.preventDefault(); handlePress(); });
 
 function endTreatment() {
   clearTimeout(stimulusTimeout); clearTimeout(flashTimeout);
-  state.waitingForResponse=false; stopMusic();
-  if (state.currentTreatmentIdx<state.treatments.length-1) {
+  state.waitingForResponse = false; stopMusic();
+  if (state.currentTreatmentIdx < state.treatments.length - 1) {
     showScreen('rest'); startRestTimer();
   } else { showResults(); }
 }
 
-$('btn-left').addEventListener('pointerdown', e=>{ e.preventDefault(); handlePress('left'); });
-$('btn-right').addEventListener('pointerdown', e=>{ e.preventDefault(); handlePress('right'); });
-
 // ── REST ──
 function startRestTimer() {
-  let rem=180; updateRestTimer(rem);
-  state.restTimerInterval=setInterval(()=>{ rem--; updateRestTimer(rem); if(rem<=0) clearInterval(state.restTimerInterval); },1000);
+  let rem = 180; updateRestTimer(rem);
+  state.restTimerInterval = setInterval(() => {
+    rem--; updateRestTimer(rem);
+    if (rem <= 0) clearInterval(state.restTimerInterval);
+  }, 1000);
 }
 function updateRestTimer(s) {
-  $('rest-timer').textContent=`${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
+  $('rest-timer').textContent = `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, '0')}`;
 }
-$('btn-next-treatment').addEventListener('click',()=>{
+$('btn-next-treatment').addEventListener('click', () => {
   clearInterval(state.restTimerInterval);
-  state.currentTreatmentIdx++; state.currentTrial=0;
+  state.currentTreatmentIdx++; state.currentTrial = 0;
   startTreatmentIntro();
 });
 
 // ── RESULTS ──
 function showResults() {
   const existing = JSON.parse(localStorage.getItem('crt_all_trials') || '[]');
-  const updated = [...existing, ...state.allTrials];
+  const updated  = [...existing, ...state.allTrials];
   localStorage.setItem('crt_all_trials', JSON.stringify(updated));
 
-  const trials=state.allTrials;
-  const vRTs=trials.filter(r=>typeof r.rt_ms==='number'&&r.correct==='YES').map(r=>r.rt_ms);
-  const avg=vRTs.length?Math.round(vRTs.reduce((a,b)=>a+b,0)/vRTs.length):'—';
-  const acc=trials.length?Math.round(trials.filter(r=>r.correct==='YES').length/trials.length*100):0;
-  $('results-summary').innerHTML=`
+  const trials = state.allTrials;
+  const vRTs   = trials.filter(r => typeof r.rt_ms === 'number' && r.correct === 'YES').map(r => r.rt_ms);
+  const avg    = vRTs.length ? Math.round(vRTs.reduce((a, b) => a + b, 0) / vRTs.length) : '—';
+  const acc    = trials.length ? Math.round(trials.filter(r => r.correct === 'YES').length / trials.length * 100) : 0;
+  $('results-summary').innerHTML = `
     <div class="summary-card"><div class="s-label">Subject</div><div class="s-value" style="font-size:13px">${state.subject}</div></div>
-    <div class="summary-card"><div class="s-label">Block</div><div class="s-value">${state.block}</div></div>
+    <div class="summary-card"><div class="s-label">Combination</div><div class="s-value">${state.block}</div></div>
     <div class="summary-card"><div class="s-label">Avg RT</div><div class="s-value">${avg}<span style="font-size:11px;color:var(--text-muted)"> ms</span></div></div>
     <div class="summary-card"><div class="s-label">Accuracy</div><div class="s-value">${acc}<span style="font-size:11px;color:var(--text-muted)">%</span></div></div>
     <div class="summary-card"><div class="s-label">Trials</div><div class="s-value">${trials.length}</div></div>`;
-  const tbody=$('results-tbody'); tbody.innerHTML='';
-  trials.forEach(r=>{
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td>${r.trial}</td><td>${r.treatment}</td><td>${r.music}</td>
-      <td style="color:${r.color==='yellow'?'var(--yellow)':'var(--red)'}">${r.color}</td>
-      <td>${r.side}</td>
-      <td style="color:${r.correct==='YES'?'var(--green)':'var(--red)'}">${r.correct}</td>
+
+  const tbody = $('results-tbody'); tbody.innerHTML = '';
+  trials.forEach(r => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${r.trial}</td><td>${r.treatment}</td><td>${r.music}</td>
+      <td style="color:${r.color === 'yellow' ? 'var(--yellow)' : 'var(--red)'}">${r.color}</td>
+      <td style="color:${r.correct === 'YES' ? 'var(--green)' : 'var(--red)'}">${r.correct}</td>
       <td>${r.rt_ms}</td>`;
     tbody.appendChild(tr);
   });
@@ -419,21 +422,21 @@ $('btn-download').addEventListener('click', () => {
 
   const wb = XLSX.utils.book_new();
 
-  const h = ['Subject','Block','Treatment','TreatmentNo','Music_Type','Color','Trial',
-              'Stimulus_Side','Response_Side','Correct','RT_ms','Timestamp','Notes'];
+  const h = ['Subject', 'Combination', 'Treatment', 'TreatmentNo', 'Music_Type', 'Color',
+             'Trial', 'Correct', 'RT_ms', 'Timestamp', 'Notes'];
   const r = allTrials.map(r => [
     r.subject, r.block, r.treatment, r.treatmentN, r.music, r.color,
-    r.trial, r.side, r.response, r.correct, r.rt_ms, r.timestamp, r.notes
+    r.trial, r.correct, r.rt_ms, r.timestamp, r.notes
   ]);
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([h, ...r]), 'Raw_Trials');
 
   const subjects = [...new Set(allTrials.map(r => r.subject))];
-  const sh = ['Subject','Block','Treatment','Music','Color','N_Trials','N_Correct',
-               'Accuracy_%','Mean_RT_ms','Min_RT_ms','Max_RT_ms'];
+  const sh = ['Subject', 'Combination', 'Treatment', 'Music', 'Color', 'N_Trials', 'N_Correct',
+              'Accuracy_%', 'Mean_RT_ms', 'Min_RT_ms', 'Max_RT_ms'];
   const sr = [];
   subjects.forEach(subj => {
     const subjTrials = allTrials.filter(r => r.subject === subj);
-    const tKeys = [...new Set(subjTrials.map(r => r.treatment))];
+    const tKeys      = [...new Set(subjTrials.map(r => r.treatment))];
     tKeys.forEach(k => {
       const tr  = subjTrials.filter(r => r.treatment === k);
       const c   = tr.filter(r => r.correct === 'YES' && typeof r.rt_ms === 'number');
@@ -442,7 +445,7 @@ $('btn-download').addEventListener('click', () => {
       const blk = tr[0]?.block ?? '';
       sr.push([subj, blk, k, tm.music, tm.color, tr.length, c.length,
         tr.length ? +(c.length / tr.length * 100).toFixed(1) : 0,
-        rts.length ? Math.round(rts.reduce((a,b) => a+b,0) / rts.length) : 'N/A',
+        rts.length ? Math.round(rts.reduce((a, b) => a + b, 0) / rts.length) : 'N/A',
         rts.length ? Math.min(...rts) : 'N/A',
         rts.length ? Math.max(...rts) : 'N/A']);
     });
@@ -453,11 +456,13 @@ $('btn-download').addEventListener('click', () => {
   XLSX.writeFile(wb, `CRT_ALL_SUBJECTS_${date}.xlsx`);
 });
 
-$('btn-new-session').addEventListener('click',()=>{
+$('btn-new-session').addEventListener('click', () => {
   stopMusic();
-  state={subject:'',block:null,notes:'',trialsPerTreatment:5,treatments:[],
-    currentTreatmentIdx:0,currentTrial:0,stimulusSide:null,stimulusTime:null,
-    waitingForResponse:false,allTrials:[],restTimerInterval:null};
-  $('subject-name').value=''; $('bibd-block').value=''; $('session-notes').value='';
+  state = {
+    subject: '', block: null, notes: '', trialsPerTreatment: 5, treatments: [],
+    currentTreatmentIdx: 0, currentTrial: 0, stimulusTime: null,
+    waitingForResponse: false, allTrials: [], restTimerInterval: null,
+  };
+  $('subject-name').value = ''; $('bibd-block').value = ''; $('session-notes').value = '';
   showScreen('setup');
 });

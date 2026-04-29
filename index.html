@@ -30,15 +30,15 @@
       </div>
 
       <div class="field-group">
-        <label>BIBD Block Assignment</label>
+        <label>Treatment Combination</label>
         <select id="bibd-block">
-          <option value="">— select block —</option>
-          <option value="1">Block 1 — Soothing·Yellow + Soothing·Red</option>
-          <option value="2">Block 2 — Soothing·Yellow + Metal·Yellow</option>
-          <option value="3">Block 3 — Soothing·Yellow + Metal·Red</option>
-          <option value="4">Block 4 — Soothing·Red + Metal·Yellow</option>
-          <option value="5">Block 5 — Soothing·Red + Metal·Red</option>
-          <option value="6">Block 6 — Metal·Yellow + Metal·Red</option>
+          <option value="">— select combination —</option>
+          <option value="1">Combination 1 — Soothing·Yellow + Soothing·Red</option>
+          <option value="2">Combination 2 — Soothing·Yellow + Metal·Yellow</option>
+          <option value="3">Combination 3 — Soothing·Yellow + Metal·Red</option>
+          <option value="4">Combination 4 — Soothing·Red + Metal·Yellow</option>
+          <option value="5">Combination 5 — Soothing·Red + Metal·Red</option>
+          <option value="6">Combination 6 — Metal·Yellow + Metal·Red</option>
         </select>
       </div>
 
@@ -78,9 +78,9 @@
     </div>
 
     <div class="bibd-reference">
-      <h3>BIBD Reference</h3>
+      <h3>Treatment Combinations Reference</h3>
       <table>
-        <thead><tr><th>Block</th><th>Treatment A</th><th>Treatment B</th></tr></thead>
+        <thead><tr><th>Combination</th><th>Treatment A</th><th>Treatment B</th></tr></thead>
         <tbody>
           <tr><td>1</td><td>Soothing · Yellow</td><td>Soothing · Red</td></tr>
           <tr><td>2</td><td>Soothing · Yellow</td><td>Metal · Yellow</td></tr>
@@ -107,11 +107,11 @@
       <div class="tut-instructions">
         <div class="tut-rule">
           <span class="tut-rule-icon">👁</span>
-          <span>Watch the two circles. One will suddenly light up — <span style="color:var(--yellow);font-weight:700">yellow</span> or <span style="color:var(--red);font-weight:700">red</span>.</span>
+          <span>Watch the button in the centre. It will suddenly glow — <span style="color:var(--yellow);font-weight:700">yellow</span> or <span style="color:var(--red);font-weight:700">red</span>.</span>
         </div>
         <div class="tut-rule">
           <span class="tut-rule-icon">👇</span>
-          <span>Press the <strong>left button</strong> if the left circle lit up, <strong>right button</strong> if the right one did.</span>
+          <span><strong>Tap the button</strong> the moment it glows!</span>
         </div>
         <div class="tut-rule">
           <span class="tut-rule-icon">⚡</span>
@@ -135,16 +135,12 @@
         </div>
       </div>
 
-      <div class="stimulus-area">
-        <div class="stimulus-node left" id="tut-node-left"></div>
-        <div class="center-divider"></div>
-        <div class="stimulus-node right" id="tut-node-right"></div>
+      <div class="stimulus-area single-stimulus">
+        <button class="stimulus-node center" id="tut-node-center" aria-label="Tap"></button>
       </div>
 
-      <div class="thumb-zone">
-        <button class="thumb-btn left-btn" id="tut-btn-left" aria-label="Left">◀</button>
+      <div class="thumb-zone single-thumb">
         <div class="thumb-status" id="tut-thumb-status">get ready…</div>
-        <button class="thumb-btn right-btn" id="tut-btn-right" aria-label="Right">▶</button>
       </div>
     </div>
 
@@ -153,7 +149,7 @@
       <div class="treatment-badge">Practice Complete ✓</div>
       <div class="tut-done-stats" id="tut-done-stats"></div>
       <p class="instruction-text" style="margin-top:16px;">
-        In the real experiment, music will be playing throughout.<br>React exactly the same way — as fast as possible!
+        In the real experiment, music will be playing throughout.<br>React exactly the same way — tap as fast as possible!
       </p>
       <button class="btn-primary" id="btn-tut-continue">Continue to Experiment →</button>
       <button class="btn-skip" id="btn-tut-retry">Practice again</button>
@@ -167,7 +163,7 @@
   <div class="treatment-intro-content">
     <div class="treatment-badge" id="treatment-badge">Treatment 1 of 2</div>
     <div class="treatment-details" id="treatment-details"></div>
-    <p class="instruction-text">Place both thumbs on the buttons below.<br>When a circle lights up — press that side!</p>
+    <p class="instruction-text">Keep your right thumb on the button below.<br>When the button glows — tap it as fast as you can!</p>
     <div class="music-status" id="music-status-intro">
       <span class="music-icon">♪</span>
       <span id="music-label-intro">Loading music…</span>
@@ -185,17 +181,12 @@
     <div class="color-pill" id="color-pill">●</div>
   </div>
 
-  <div class="stimulus-area">
-    <div class="stimulus-node left" id="node-left"></div>
-    <div class="center-divider"></div>
-    <div class="stimulus-node right" id="node-right"></div>
+  <div class="stimulus-area single-stimulus">
+    <button class="stimulus-node center" id="node-center" aria-label="Tap"></button>
   </div>
 
-  <!-- Thumb buttons — large, fixed to bottom corners -->
-  <div class="thumb-zone">
-    <button class="thumb-btn left-btn" id="btn-left" aria-label="Left">◀</button>
+  <div class="thumb-zone single-thumb">
     <div class="thumb-status" id="thumb-status">waiting…</div>
-    <button class="thumb-btn right-btn" id="btn-right" aria-label="Right">▶</button>
   </div>
 
 </div>
@@ -221,7 +212,7 @@
         <thead>
           <tr>
             <th>Trial</th><th>Treatment</th><th>Music</th>
-            <th>Color</th><th>Side</th><th>Correct</th><th>RT (ms)</th>
+            <th>Color</th><th>Correct</th><th>RT (ms)</th>
           </tr>
         </thead>
         <tbody id="results-tbody"></tbody>
