@@ -26,8 +26,8 @@ const TREATMENT_MAP = {
 // ════════════════════════════════════════════
 
 const AUDIO_FILES = {
-  soothing: 'soothing.mp3',
-  metal:    'metal.mp3',
+  soothing: 'static/soothing.mp3',
+  metal:    'static/metal.mp3',
 };
 
 let currentAudio = null;

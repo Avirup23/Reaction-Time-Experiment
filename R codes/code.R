@@ -31,7 +31,7 @@ boxplot(RT ~ Music * Color, data = df,
 # Reset
 par(mfrow = c(1, 1))
 
-# Model 1: Homoscedastic -------
+# Model -------
 fit_homo <- aov(RT ~ Subject + Music * Color, data = df)
 
 # ANOVA & Summary
